@@ -1,16 +1,18 @@
 {
   "name": "task-api",
   "version": "1.0.0",
-  "description": "Mali REST API za zadatke - demonstracija testiranja, kvaliteta koda, Docker-a i CI/CD-a",
+  "description": "REST API za zadatke (Node.js, Express, PostgreSQL) - demonstracija testiranja, kvaliteta koda, Docker-a i CI/CD-a",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "test": "jest --coverage",
+    "test:integration": "jest --testMatch \"**/tests/integration/*.itest.js\" --runInBand",
     "lint": "eslint ."
   },
   "license": "MIT",
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "pg": "^8.23.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
@@ -21,9 +23,21 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "collectCoverageFrom": ["src/**/*.js", "!src/server.js"],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/server.js",
+      "!src/postgresRepository.js"
+    ],
     "coverageThreshold": {
-      "global": { "branches": 80, "functions": 80, "lines": 80, "statements": 80 }
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
     }
   }
 }

@@ -1,10 +1,11 @@
 const request = require("supertest");
 const { createApp } = require("../src/app");
+const { createMemoryRepository } = require("../src/memoryRepository");
 
 describe("Task API", () => {
   let app;
   beforeEach(() => {
-    app = createApp();
+    app = createApp(createMemoryRepository());
   });
 
   test("GET /health vraca status ok", async () => {
@@ -78,5 +79,28 @@ describe("Task API", () => {
   test("DELETE /tasks/:id nepostojeci vraca 404", async () => {
     const res = await request(app).delete("/tasks/99");
     expect(res.status).toBe(404);
+  });
+});
+
+describe("Task API - dodatni slucajevi", () => {
+  test("neispravan id vraca 404", async () => {
+    const app = createApp(createMemoryRepository());
+    expect((await request(app).get("/tasks/abc")).status).toBe(404);
+    expect((await request(app).get("/tasks/-1")).status).toBe(404);
+    expect((await request(app).put("/tasks/abc").send({ done: true })).status).toBe(404);
+    expect((await request(app).delete("/tasks/abc")).status).toBe(404);
+  });
+
+  test("greska u repozitorijumu vraca 500", async () => {
+    const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const brokenRepo = {
+      list: async () => {
+        throw new Error("baza ne radi");
+      },
+    };
+    const res = await request(createApp(brokenRepo)).get("/tasks");
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: "Interna greska servera" });
+    spy.mockRestore();
   });
 });
