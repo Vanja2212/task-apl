@@ -17,6 +17,11 @@ function createMemoryRepository() {
       return task ? { ...task } : null;
     },
 
+    async stats() {
+      const done = tasks.filter((t) => t.done).length;
+      return { total: tasks.length, done, open: tasks.length - done };
+    },
+
     async create(title) {
       const task = { id: nextId++, title, done: false };
       tasks.push(task);

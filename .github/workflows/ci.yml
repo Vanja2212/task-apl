@@ -70,6 +70,8 @@ jobs:
           curl --fail -X POST http://localhost:3000/tasks \
             -H "Content-Type: application/json" -d '{"title":"smoke test"}'
           curl --fail http://localhost:3000/tasks
+          curl --fail http://localhost:3000/stats
+          curl --fail http://localhost:3000/ | grep -qi "<title>"
 
       - name: Logovi (samo pri gresci)
         if: failure()

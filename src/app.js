@@ -1,3 +1,4 @@
+const path = require("path");
 const express = require("express");
 
 const MAX_ID = 2147483647; // najveci INTEGER u PostgreSQL-u
@@ -13,10 +14,18 @@ const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).cat
 function createApp(repo) {
   const app = express();
   app.use(express.json());
+  app.use(express.static(path.join(__dirname, "..", "public")));
 
   app.get("/health", (req, res) => {
     res.json({ status: "ok" });
   });
+
+  app.get(
+    "/stats",
+    wrap(async (req, res) => {
+      res.json(await repo.stats());
+    })
+  );
 
   app.get(
     "/tasks",

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Task API - pregled zadataka</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; color: #1f2937; }
+    h1 { font-size: 1.5rem; }
+    .stats { display: flex; gap: 1rem; margin: 1.5rem 0; }
+    .card { flex: 1; padding: 1rem; border: 1px solid #d1d5db; border-radius: 8px; text-align: center; }
+    .card b { display: block; font-size: 2rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { text-align: left; padding: .5rem; border-bottom: 1px solid #e5e7eb; }
+    .done { color: #15803d; }
+    .open { color: #b45309; }
+    form { display: flex; gap: .5rem; margin-top: 1rem; }
+    input { flex: 1; padding: .5rem; }
+    button { padding: .4rem .8rem; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Pregled zadataka</h1>
+  <p>Podaci se čitaju iz API-ja (<code>/tasks</code> i <code>/stats</code>), a čuvaju u PostgreSQL bazi.</p>
+
+  <div class="stats">
+    <div class="card"><b id="total">-</b>ukupno</div>
+    <div class="card"><b id="done">-</b>završeno</div>
+    <div class="card"><b id="open">-</b>u toku</div>
+  </div>
+
+  <form id="add-form">
+    <input id="title" placeholder="Novi zadatak" required>
+    <button type="submit">Dodaj</button>
+  </form>
+
+  <table>
+    <thead><tr><th>#</th><th>Zadatak</th><th>Status</th><th></th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <script>
+    async function load() {
+      const [tasks, stats] = await Promise.all([
+        fetch("/tasks").then((r) => r.json()),
+        fetch("/stats").then((r) => r.json()),
+      ]);
+
+      document.getElementById("total").textContent = stats.total;
+      document.getElementById("done").textContent = stats.done;
+      document.getElementById("open").textContent = stats.open;
+
+      const rows = document.getElementById("rows");
+      rows.replaceChildren();
+      for (const task of tasks) {
+        const tr = document.createElement("tr");
+
+        const id = document.createElement("td");
+        id.textContent = task.id;
+
+        const title = document.createElement("td");
+        title.textContent = task.title;
+
+        const status = document.createElement("td");
+        status.textContent = task.done ? "završeno" : "u toku";
+        status.className = task.done ? "done" : "open";
+
+        const action = document.createElement("td");
+        const button = document.createElement("button");
+        button.textContent = task.done ? "Vrati" : "Završi";
+        button.addEventListener("click", async () => {
+          await fetch("/tasks/" + task.id, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ done: !task.done }),
+          });
+          load();
+        });
+        action.appendChild(button);
+
+        tr.append(id, title, status, action);
+        rows.appendChild(tr);
+      }
+    }
+
+    document.getElementById("add-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const input = document.getElementById("title");
+      await fetch("/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: input.value }),
+      });
+      input.value = "";
+      load();
+    });
+
+    load();
+  </script>
+</body>
+</html>

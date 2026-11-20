@@ -4,6 +4,8 @@ REST API za zadatke (Node.js + Express + PostgreSQL). Služi kao demonstracija
 alata za testiranje, kontrolu kvaliteta koda, kontejnerizaciju i CI/CD.
 
 ## Struktura
+- `public/index.html` - web stranica (tabela zadataka i statistika)
+- `db/seed.sql` - početni podaci (učitavaju se samo pri prvom pravljenju baze)
 - `src/app.js` - Express aplikacija (rute)
 - `src/memoryRepository.js` - čuvanje u memoriji (unit testovi, rad bez baze)
 - `src/postgresRepository.js` - čuvanje u PostgreSQL-u
@@ -25,7 +27,8 @@ curl -X POST http://localhost:3000/tasks -H "Content-Type: application/json" -d 
 curl http://localhost:3000/tasks
 docker compose down        # dodaj -v da obrišeš i podatke
 ```
-Podaci ostaju sačuvani u volume-u `pgdata` između restartovanja.
+Podaci ostaju sačuvani u volume-u `pgdata` između restartovanja. Pri prvom pokretanju baza se popunjava iz `db/seed.sql`; da bi se početni podaci ponovo učitali, obriši volume: `docker compose down -v`.
+Web stranica: http://localhost:3000
 
 ## Integracioni testovi (potrebna PostgreSQL baza)
 ```bash
@@ -39,6 +42,8 @@ U CI-ju ih automatski pokreće Postgres servis.
 | Metoda | Putanja | Opis |
 |--------|---------|------|
 | GET | /health | provera rada servisa |
+| GET | / | web stranica sa pregledom zadataka i statistikom |
+| GET | /stats | broj ukupnih, završenih i zadataka u toku |
 | GET | /tasks | lista zadataka |
 | GET | /tasks/:id | jedan zadatak |
 | POST | /tasks | novi zadatak (`{"title": "..."}`) |

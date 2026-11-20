@@ -30,6 +30,16 @@ function createPostgresRepository(connectionString) {
       return rows[0] || null;
     },
 
+    async stats() {
+      const { rows } = await pool.query(`
+        SELECT COUNT(*)::int AS total,
+               COUNT(*) FILTER (WHERE done)::int AS done,
+               COUNT(*) FILTER (WHERE NOT done)::int AS open
+        FROM tasks
+      `);
+      return rows[0];
+    },
+
     async create(title) {
       const { rows } = await pool.query(
         "INSERT INTO tasks (title) VALUES ($1) RETURNING id, title, done",

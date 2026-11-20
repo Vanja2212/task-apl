@@ -104,3 +104,23 @@ describe("Task API - dodatni slucajevi", () => {
     spy.mockRestore();
   });
 });
+
+describe("Statistika i pocetna stranica", () => {
+  test("GET /stats broji zadatke", async () => {
+    const app = createApp(createMemoryRepository());
+    await request(app).post("/tasks").send({ title: "A" });
+    await request(app).post("/tasks").send({ title: "B" });
+    await request(app).put("/tasks/1").send({ done: true });
+
+    const res = await request(app).get("/stats");
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ total: 2, done: 1, open: 1 });
+  });
+
+  test("GET / vraca HTML stranicu", async () => {
+    const res = await request(createApp(createMemoryRepository())).get("/");
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toMatch(/html/);
+    expect(res.text).toContain("Pregled zadataka");
+  });
+});

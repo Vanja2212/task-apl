@@ -51,6 +51,14 @@ describeIfDb("PostgreSQL repozitorijum + API", () => {
     expect((await request(app).get("/tasks/1")).status).toBe(404);
   });
 
+  test("statistika se racuna u bazi", async () => {
+    await request(app).post("/tasks").send({ title: "A" });
+    await request(app).post("/tasks").send({ title: "B" });
+    await request(app).put("/tasks/1").send({ done: true });
+    const res = await request(app).get("/stats");
+    expect(res.body).toEqual({ total: 2, done: 1, open: 1 });
+  });
+
   test("veoma veliki id vraca 404, a ne gresku baze", async () => {
     const res = await request(app).get("/tasks/99999999999");
     expect(res.status).toBe(404);
